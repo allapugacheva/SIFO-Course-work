@@ -3,17 +3,17 @@ module gpr (
 	input rst,
 	
 	input [3:0] addr,
-	input [9:0] indata
+	input [9:0] indata,
 	
 	input        read,
-	inut         write
+	input        write,
 	
 	output [9:0] outdata
 );
 
 	logic [9:0] registers [0:9];
 	
-	always_ff @(posedge clk or posegde rst)
+	always_ff @(posedge clk or posedge rst)
 		if (rst) begin
 			for (int i = 0; i < 10; i++)
 				registers[i] <= '0;

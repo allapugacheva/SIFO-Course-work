@@ -20,7 +20,7 @@ module cpu (
 		if (rst)
 			pc <= 14'b10000000000000;
 		else if (pcEn)
-			pc <= addrJump ? instr[13:0] : (pc + 1'b1);	
+			pc <= pcSrc ? instr[13:0] : (pc + 1'b1);	
 	
 	always_comb begin
 		addr = 'z;
@@ -71,7 +71,7 @@ module cpu (
 	logic [3:0] gpr_addr;
 	
 	always_comb begin
-		grp_addr = 'z;
+		gpr_addr = 'z;
 	
 		if (op1RE) begin
 			gpr_addr = instr[24:21];
@@ -146,7 +146,7 @@ module cpu (
 	logic s, g;
 	
 	alu alu_module (
-		.opcode (instr[39:35]),
+		.opcode (instr[29:25]),
 		.op1    (op1),
 		.op2    (op2),
 		
@@ -170,7 +170,7 @@ module cpu (
 		.clk        (clk),
 		.rst        (rst),
 		
-		.opcode     (instr[39:35]),
+		.opcode     (instr[29:25]),
 		.s          (s),
 		.g          (g),
 		

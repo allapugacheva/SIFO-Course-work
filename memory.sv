@@ -15,7 +15,7 @@ module memory (
 	
 	logic [9:0] ram_out;
 	
-	always_ff @(posedge clk or posedge rst)
+	always_ff @(posedge clk)
 		if (write & addr[13])
 			ram[addr[12:0]] <= indata;
 		else if (read & addr[13])

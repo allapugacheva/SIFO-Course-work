@@ -14,7 +14,7 @@ module cu (
 	output       regWE,
 	output       regRE,
 	
-	output       pcEn
+	output       pcEn,
 	
 	output       memAddrSrc,
 	
@@ -60,6 +60,7 @@ module cu (
 		op2RE      = 1'b0;
 		RiHRE      = 1'b0;
 		RiLRE      = 1'b0;
+		pcSrc      = 1'b0;
 		instrWrite = 2'd0;
 		push       = 1'b0;
 		pop        = 1'b0;
@@ -97,7 +98,7 @@ module cu (
 				pcEn       = 1'b1;
 				memRE      = 1'b1;
 				memAddrSrc = 1'b1;
-				instrWrite = 2'b2;
+				instrWrite = 2'd2;
 				
 				if (   opcode == 5'b00010
 					 || opcode == 5'b00110
@@ -196,13 +197,13 @@ module cu (
 					memWE     = 1'b1;		
 				end
 				else if (   opcode == 5'b01110 ) begin
-					addrJump  = 1'b1;
+					pcSrc     = 1'b1;
 				end
 				else if (   opcode == 5'b01111 && sf ) begin
-					addrJump  = 1'b1;
+					pcSrc     = 1'b1;
 				end
 				else if (   opcode == 5'b10000 && gf ) begin
-					addrJump  = 1'b1;
+					pcSrc     = 1'b1;
 				end
 				
 				next_state = FETCH_B1;

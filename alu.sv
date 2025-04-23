@@ -4,12 +4,11 @@ module alu (
 	input  signed [9:0] op2,
 	
 	output signed [9:0] res,
-	output             s,  // lower 0
-	output             g,  // op1 > op2
+	output              s,  // lower 0
+	output              g   // op1 > op2
 );
-
-	logic [3:0] op2_mod;
 	
+	logic [3:0] op2_mod;
 	assign op2_mod = op2 % 10;
 
 	always_comb begin
@@ -18,11 +17,11 @@ module alu (
 	
 		case (opcode)
 	
-			5b'00101, 5b'00110: res =   op1 - 1'b1;
-			5b'00111, 5b'01000: res =   op1 ^ op2;
-			5b'01001, 5b'01010: res = ~(op1 & op2);
-			5b'01011, 5b'01100: res = { op1[op2_mod - 1:0], op1[9 - op2_mod:op2_mod] };
-			5b'10011          : res =   op1 + 1'b1;
+			5'b00101, 5'b00110: res =   op1 - 1'b1;
+			5'b00111, 5'b01000: res =   op1 ^ op2;
+			5'b01001, 5'b01010: res = ~(op1 & op2);
+			5'b01011, 5'b01100: res = (op1 >> op2_mod) | (op1 << (10 - op2_mod));
+			5'b10011          : res =   op1 + 1'b1;
 			default           : res = 'z;
 		
 		endcase
