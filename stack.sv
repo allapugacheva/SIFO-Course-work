@@ -6,7 +6,15 @@ module stack (
 	input  [9:0] indata,
 	
 	input  pop,
-	output [9:0] outdata
+	output [9:0] outdata,
+	
+	output [9:0] D_STACK1,
+	output [9:0] D_STACK2,
+	output [9:0] D_STACK3,
+	output [9:0] D_STACK4,
+	output [9:0] D_STACK5,
+	output [9:0] D_STACK6,
+	output [9:0] D_STACK7
 );
 
 	logic [9:0] data [0:6];
@@ -29,5 +37,13 @@ module stack (
 		end
 		
 	assign outdata = pop & ptr < 'd7 ? data[ptr] : 'z;
+	
+	assign D_STACK1 = data[0];
+	assign D_STACK2 = data[1];
+	assign D_STACK3 = data[2];
+	assign D_STACK4 = data[3];
+	assign D_STACK5 = data[4];
+	assign D_STACK6 = data[5];
+	assign D_STACK7 = data[6];
 
 endmodule

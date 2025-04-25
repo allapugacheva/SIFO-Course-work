@@ -10,17 +10,26 @@ module memory (
 	output [9:0] outdata
 );
 
-	logic [9:0] ram [0:8192]; // 2^13
+	logic [9:0] ram [0:8192];
 	logic [9:0] rom [0:8192];
 	
 	logic [9:0] ram_out;
 	
 	always_ff @(posedge clk)
-		if (write & addr[13])
+		if      (write & ~addr[13]) begin
 			ram[addr[12:0]] <= indata;
-		else if (read & addr[13])
+		end
+		else if (read  & ~addr[13]) begin
 			ram_out         <= ram[addr[12:0]];
+		end
 	
-	assign outdata = read ? (addr[13] ? rom[addr[12:0]] : ram_out) : 'z;
+	assign outdata = addr[13] ? rom[addr[12:0]] : ram_out;
+	
+	initial begin
+		$readmemb("D:/SifoCourseWork/rom.mem", rom);
+		$readmemb("D:/SifoCourseWork/ram.mem", ram);
+		
+		
+	end
 
 endmodule

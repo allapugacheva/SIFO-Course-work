@@ -1,6 +1,62 @@
 module cpu (
 	input clk,
-	input rst
+	input rst,
+	
+	output [13:0] m_addr,
+	output [ 9:0] m_indata,
+	output        m_write,
+	output        m_read,
+	input  [ 9:0] m_outdata,
+	
+	output [13:0] D_PC,
+	output [29:0] D_INSTR,
+	output [ 9:0] D_OP1,
+	output [ 9:0] D_OP2,
+	output [13:0] D_INDEX,
+	output [13:0] D_ADDR,
+	output        D_G,
+	output        D_S,
+	output        D_OP1RE,
+	output        D_OP2RE,
+	output        D_RIHRE,
+	output        D_RILRE,
+	output        D_PCEN,
+	output        D_REGRE,
+	output        D_REGWE,
+	output        D_PCSRC,
+	output        D_RESULTSRC,
+	output        D_MEMADDRSRC,
+	output [ 9:0] D_GPROUT,
+	output [ 3:0] D_GPRADDR,
+	output [ 9:0] D_ALURES,
+	output [ 9:0] D_RES,
+	output [ 1:0] D_INSTRWRITE,
+	output        D_PUSH,
+	output        D_POP,
+	output [ 9:0] D_STACKOUT,
+	output [ 2:0] D_STATE,
+	output        D_SF,
+	output        D_GF,
+	output        D_CLKEN,
+	
+	output [ 9:0] D_REG1,
+	output [ 9:0] D_REG2,
+	output [ 9:0] D_REG3,
+	output [ 9:0] D_REG4,
+	output [ 9:0] D_REG5,
+	output [ 9:0] D_REG6,
+	output [ 9:0] D_REG7,
+	output [ 9:0] D_REG8,
+	output [ 9:0] D_REG9,
+	output [ 9:0] D_REG10,
+	
+	output [ 9:0] D_STACK1,
+	output [ 9:0] D_STACK2,
+	output [ 9:0] D_STACK3,
+	output [ 9:0] D_STACK4,
+	output [ 9:0] D_STACK5,
+	output [ 9:0] D_STACK6,
+	output [ 9:0] D_STACK7
 );
 
 	logic [13:0] pc;
@@ -16,7 +72,16 @@ module cpu (
 	logic        push, pop;
 	logic [ 9:0] stack_out;
 	
-	always_ff @ (posedge clk or posedge rst)
+	logic clk_en, clk_in;
+	assign clk_in = clk & clk_en;
+	
+	always_ff @ (posedge clk_in or posedge rst)
+		if (rst)
+			clk_en <= 1'b1;
+		else if (instr[29:25] == 5'b10011)
+			clk_en <= 1'b0;
+	
+	always_ff @ (posedge clk_in or posedge rst)
 		if (rst)
 			pc <= 14'b10000000000000;
 		else if (pcEn)
@@ -44,19 +109,13 @@ module cpu (
 	
 	assign res      = resultSrc ? op1 : (pop ? stack_out : aluRes);
 	
-	memory memory_module (
-		.clk     (clk),
-		
-		.addr    (mem_addr),
-		.indata  (res),
-		
-		.write   (memWE),
-		.read    (memRE),
-		
-		.outdata (mem_out)
-	);
+	assign m_addr   = mem_addr;
+	assign m_indata = res;
+	assign m_write  = memWE;
+	assign m_read   = memRE;
+	assign mem_out  = m_outdata;
 	
-	always_ff @ (posedge clk or posedge rst)
+	always_ff @ (posedge clk_in or posedge rst)
 		if (rst)
 			instr <= '0;
 		else if (instrWrite == 2'd0)
@@ -110,7 +169,7 @@ module cpu (
 	end
 	
 	gpr gpr_module (
-		.clk     (clk),
+		.clk     (clk_in),
 		.rst     (rst),
 		
 		.addr    (gpr_addr),
@@ -119,22 +178,33 @@ module cpu (
 		.read    (regRE),
 		.write   (regWE),
 		
-		.outdata (gpr_out)
+		.outdata (gpr_out),
+		
+		.D_REG1  (D_REG1),
+		.D_REG2  (D_REG2),
+		.D_REG3  (D_REG3),
+		.D_REG4  (D_REG4),
+		.D_REG5  (D_REG5),
+		.D_REG6  (D_REG6),
+		.D_REG7  (D_REG7),
+		.D_REG8  (D_REG8),
+		.D_REG9  (D_REG9),
+		.D_REG10 (D_REG10)
 	);
 	
-	always_ff @ (posedge clk or posedge rst)
+	always_ff @ (posedge clk_in or posedge rst)
 		if (rst)
 			op1 <= '0;
 		else if (op1RE)
 			op1 <= regRE ? gpr_out : mem_out;
 			
-	always_ff @ (posedge clk or posedge rst)
+	always_ff @ (posedge clk_in or posedge rst)
 		if (rst)
 			op2 <= '0;
 		else if (op2RE)
 			op2 <= regRE ? gpr_out : mem_out;
 			
-	always_ff @ (posedge clk or posedge rst)
+	always_ff @ (posedge clk_in or posedge rst)
 		if (rst)
 			index <= '0;
 		else if (regRE)
@@ -156,18 +226,26 @@ module cpu (
 	);
 	
 	stack stack_module (
-		.clk     (clk),
+		.clk     (clk_in),
 		.rst     (rst),
 		
 		.push    (push),
 		.indata  (res),
 		
 		.pop     (pop),
-		.outdata (stack_out)
+		.outdata (stack_out),
+	
+		.D_STACK1(D_STACK1),
+		.D_STACK2(D_STACK2),
+		.D_STACK3(D_STACK3),
+		.D_STACK4(D_STACK4),
+		.D_STACK5(D_STACK5),
+		.D_STACK6(D_STACK6),
+		.D_STACK7(D_STACK7)
 	);
 	
 	cu cu_module (
-		.clk        (clk),
+		.clk        (clk_in),
 		.rst        (rst),
 		
 		.opcode     (instr[29:25]),
@@ -197,7 +275,39 @@ module cpu (
 		.instrWrite (instrWrite),
 		
 		.push       (push),
-		.pop        (pop)
+		.pop        (pop),
+		
+		.D_STATE    (D_STATE),
+		.D_SF       (D_SF),
+		.D_GF       (D_GF)
 	);
+	
+	assign D_PC         = pc;
+	assign D_INSTR      = instr;
+	assign D_OP1        = op1;
+	assign D_OP2        = op2;
+	assign D_INDEX      = index;
+	assign D_ADDR       = addr;
+	assign D_G          = g;
+	assign D_S          = s;
+	assign D_OP1RE      = op1RE;
+	assign D_OP2RE      = op2RE;
+	assign D_RIHRE      = RiHRE;
+	assign D_RILRE      = RiLRE;
+	assign D_PCEN       = pcEn;
+	assign D_REGRE      = regRE;
+	assign D_REGWE      = regWE;
+	assign D_PCSRC      = pcSrc;
+	assign D_RESULTSRC  = resultSrc;
+	assign D_MEMADDRSRC = memAddrSrc;
+	assign D_GPROUT     = gpr_out;
+	assign D_GPRADDR    = gpr_addr;
+	assign D_ALURES     = aluRes;
+	assign D_RES        = res;
+	assign D_INSTRWRITE = instrWrite;
+	assign D_PUSH       = push;
+	assign D_POP        = pop;
+	assign D_STACKOUT   = stack_out;
+	assign D_CLKEN      = clk_en;
 
 endmodule

@@ -6,30 +6,34 @@ module cu (
 	input        s,
 	input        g,
 	
-	output       resultSrc,
+	output logic resultSrc,
 	
-	output       memWE,
-	output       memRE,
+	output logic memWE,
+	output logic memRE,
 	
-	output       regWE,
-	output       regRE,
+	output logic regWE,
+	output logic regRE,
 	
-	output       pcEn,
+	output logic pcEn,
 	
-	output       memAddrSrc,
+	output logic memAddrSrc,
 	
-	output       op1RE,
-	output       op2RE,
+	output logic op1RE,
+	output logic op2RE,
 	
-	output       RiHRE,
-	output       RiLRE,
+	output logic RiHRE,
+	output logic RiLRE,
 	
-	output       pcSrc,
+	output logic pcSrc,
 	
-	output [1:0] instrWrite,
+	output logic [1:0] instrWrite,
 	
-	output       push,
-	output       pop
+	output logic push,
+	output logic pop,
+	
+	output logic [2:0] D_STATE,
+	output logic       D_SF,
+	output logic       D_GF
 );
 
 	enum logic [2:0] {
@@ -37,14 +41,18 @@ module cu (
 		FETCH_B2_R1,
 		FETCH_B3_RIH,
 		FETCH_RIL,
-		FETCH_B3_R2,
 		FETCH_M_WAIT,
 		FETCH_M_SAVE,
 		EXECUTE
 		
 	} state, next_state;
 	
+	assign D_STATE = state;
+	
 	logic sf, gf;
+	
+	assign D_SF = sf;
+	assign D_GF = gf;
 	
 	always_comb begin
 		next_state = state;
@@ -61,7 +69,7 @@ module cu (
 		RiHRE      = 1'b0;
 		RiLRE      = 1'b0;
 		pcSrc      = 1'b0;
-		instrWrite = 2'd0;
+		instrWrite = 2'd3;
 		push       = 1'b0;
 		pop        = 1'b0;
 	
@@ -108,15 +116,6 @@ module cu (
 					regRE      = 1'b1;
 					RiHRE      = 1'b1;
 				end
-				else if (   opcode == 5'b00111
-							|| opcode == 5'b01001
-							|| opcode == 5'b01011
-							|| opcode == 5'b01000
-							|| opcode == 5'b01010
-							|| opcode == 5'b01100 ) begin
-					regRE     = 1'b1;
-					op2RE     = 1'b1;
-				end
 				
 				next_state = FETCH_RIL;
 			end
@@ -145,6 +144,16 @@ module cu (
 					 || opcode == 5'b10000
 					 || opcode == 5'b10001 )
 					memRE = 1'b1;
+					
+				if (   opcode == 5'b00111
+					 || opcode == 5'b01001
+					 || opcode == 5'b01011
+					 || opcode == 5'b01000
+					 || opcode == 5'b01010
+					 || opcode == 5'b01100 ) begin
+					regRE     = 1'b1;
+					op2RE     = 1'b1;
+				end
 				
 				next_state = FETCH_M_SAVE;
 			end
@@ -175,11 +184,11 @@ module cu (
 					resultSrc = 1'b1;
 					memWE     = 1'b1;
 				end
-				else if (opcode == 5'b00010) begin
+				else if (opcode == 5'b00011) begin
 					push      = 1'b1;
 					resultSrc = 1'b1;
 				end
-				else if (opcode == 5'b00011) begin
+				else if (opcode == 5'b00100) begin
 					pop       = 1'b1;
 					regWE     = 1'b1;
 				end
@@ -197,12 +206,15 @@ module cu (
 					memWE     = 1'b1;		
 				end
 				else if (   opcode == 5'b01110 ) begin
+					pcEn      = 1'b1;
 					pcSrc     = 1'b1;
 				end
 				else if (   opcode == 5'b01111 && sf ) begin
+					pcEn      = 1'b1;
 					pcSrc     = 1'b1;
 				end
 				else if (   opcode == 5'b10000 && gf ) begin
+					pcEn      = 1'b1;
 					pcSrc     = 1'b1;
 				end
 				
