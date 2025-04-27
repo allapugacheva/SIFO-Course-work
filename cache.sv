@@ -1,34 +1,35 @@
 module cache #(
-	parameter LINES      = 8,
-				 WORDS      = 8,
+	parameter LINES      = 64,
+				 WORDS      = 32,
 				 DATA_WIDTH = 10,
 				 ADDR_WIDTH = 14,
 				 OFFSET     = $clog2(WORDS),
 				 TAG        = ADDR_WIDTH - OFFSET,
 				 WORDS_LEN  = $clog2(WORDS)
 ) (
-	input                     clk,
-	input                     rst,
-	input  [ADDR_WIDTH - 1:0] addr,
-	input                     read,
-	input                     write,
-	input  [DATA_WIDTH - 1:0] write_data,
-	output                    hit,
-	output [DATA_WIDTH - 1:0] data,
-	output                    data_strob,
+	input                                                    clk,
+	input                                                    rst,
+	input        [ADDR_WIDTH - 1:0]                          addr,
+	input                                                    read,
+	input                                                    write,
+	input        [DATA_WIDTH - 1:0]                          write_data,
+	output                                                   hit,
+	output       [DATA_WIDTH - 1:0]                          data,
+	output                                                   data_strob,
+	output                                                   ready,
 	
-	output logic [ADDR_WIDTH - 1:0] ram_addr,
-	output logic                    ram_read,
-	input  logic [DATA_WIDTH - 1:0] ram_data_out,
-	output logic                   ram_write,
-	output logic [DATA_WIDTH - 1:0] ram_data_in,
+	output logic [ADDR_WIDTH - 1:0]                          ram_addr,
+	output logic                                             ram_read,
+	input  logic [DATA_WIDTH - 1:0]                          ram_data_out,
+	output logic                                             ram_write,
+	output logic [DATA_WIDTH - 1:0]                          ram_data_in,
 	
-	output logic [1 + TAG + WORDS * DATA_WIDTH - 1:0] _mem [0:LINES - 1],
-	output [DATA_WIDTH - 1:0]                   _data_sel,
-	output [$clog2(WORDS):0]                    _data_cnt,
-	output logic [$clog2(WORDS) - 1:0]                _last_save [0:WORDS - 1],
-	output [$clog2(WORDS) - 1:0]                _index,
-	output [$clog2(WORDS) - 1:0]                _write_index
+	output [1 + TAG + WORDS * DATA_WIDTH - 1:0][0:LINES - 1] D_MEM,
+	output [DATA_WIDTH - 1:0]                                D_DATASEL,
+	output [$clog2(WORDS):0]                                 D_DATACNT,
+	output [$clog2(WORDS) - 1:0][0:WORDS - 1]                D_LASTSAVE,
+	output [$clog2(WORDS) - 1:0]                             D_INDEX,
+	output [$clog2(WORDS) - 1:0]                             D_WRITEINDEX
 );
 
 	typedef enum {
@@ -41,7 +42,7 @@ module cache #(
 	
 	state_e state, next_state;
 
-	logic [1 + TAG + WORDS * DATA_WIDTH - 1:0] mem [0:LINES - 1];
+	logic [1 + TAG + WORDS * DATA_WIDTH - 1:0][0:LINES - 1] mem;
 	
 	logic [   TAG - 1:0] tag;
 	logic [OFFSET - 1:0] offset;
@@ -51,24 +52,17 @@ module cache #(
 		offset = addr[    OFFSET - 1:0];
 	end
 	
-	logic [DATA_WIDTH - 1:0] data_sel;
-	logic [WORDS_LEN:0]      data_cnt;
+	logic [DATA_WIDTH - 1:0]             data_sel;
+	logic [WORDS_LEN:0]                  data_cnt;
 	
-	logic [WORDS_LEN - 1:0] last_save [0:WORDS - 1];
-	logic [WORDS_LEN - 1:0] index;
-	logic [WORDS_LEN - 1:0] write_index;
-	
-	
-	assign _mem      = mem;
-	assign _data_sel = data_sel;
-	assign _data_cnt = data_cnt;
-	assign _last_save = last_save;
-	assign _index = index;
-	assign _write_index = write_index;
+	logic [WORDS_LEN - 1:0][0:WORDS - 1] last_save;
+	logic [WORDS_LEN - 1:0]              index;
+	logic [WORDS_LEN - 1:0]              write_index;
 	
 	always_comb begin
 		data_sel    = 'z;
 		write_index = 'z;
+		
 		if (state == IDLE | state == SHOW | state == SAVE) begin
 			if (read) begin
 				for (int i = 0; i < LINES; i++) begin
@@ -97,7 +91,7 @@ module cache #(
 	
 		case (state)
 			IDLE: if (read) begin
-						if      (data_sel === 'z & mem[index][TAG + WORDS * DATA_WIDTH])
+						if      (data_sel === 'z &  mem[index][TAG + WORDS * DATA_WIDTH])
 							next_state = LOAD;
 						else if (data_sel === 'z & ~mem[index][TAG + WORDS * DATA_WIDTH])
 							next_state = READ;
@@ -105,7 +99,7 @@ module cache #(
 							next_state = SHOW;
 					end
 					else if (write) begin						
-						if      (write_index === 'z & mem[index][TAG + WORDS * DATA_WIDTH])
+						if      (write_index === 'z &  mem[index][TAG + WORDS * DATA_WIDTH])
 							next_state = LOAD;
 						else if (write_index === 'z & ~mem[index][TAG + WORDS * DATA_WIDTH])
 							next_state = READ;
@@ -114,7 +108,7 @@ module cache #(
 					end
 			SHOW: next_state = IDLE;
 			READ: if (data_cnt < WORDS) begin
-						ram_addr = {addr[ADDR_WIDTH - 1:OFFSET], OFFSET'(0)} + data_cnt;
+						ram_addr = { addr[ADDR_WIDTH - 1:OFFSET], OFFSET'(0) } + data_cnt;
 						ram_read = 1'b1;
 					end
 					else if (read)
@@ -123,9 +117,9 @@ module cache #(
 						next_state = SAVE;
 			SAVE: next_state = IDLE;
 			LOAD: if (data_cnt < WORDS) begin 
-						ram_addr = {mem[index][TAG + WORDS * DATA_WIDTH - 1:WORDS * DATA_WIDTH], OFFSET'(0)} + data_cnt;
+						ram_addr    = { mem[index][TAG + WORDS * DATA_WIDTH - 1:WORDS * DATA_WIDTH], OFFSET'(0) } + data_cnt;
 						ram_data_in = mem[index][DATA_WIDTH * (data_cnt + 1) - 1 -: DATA_WIDTH];
-						ram_write = 1'd1;
+						ram_write   = 1'd1;
 					end
 					else
 						next_state = READ;
@@ -157,9 +151,9 @@ module cache #(
 		end
 		else if (state == READ) begin
 			if (data_cnt < WORDS)
-				mem[index][DATA_WIDTH * (data_cnt + 1) - 1 -: DATA_WIDTH] <= ram_data_out;
+				mem[index][DATA_WIDTH * (data_cnt + 1) - 1 -: DATA_WIDTH]   <= ram_data_out;
 			else begin
-				mem[index][TAG + WORDS * DATA_WIDTH] <= 1'b1;
+				mem[index][TAG + WORDS * DATA_WIDTH]                        <= 1'b1;
 				mem[index][TAG + WORDS * DATA_WIDTH - 1:WORDS * DATA_WIDTH] <= tag;
 			end
 		end
@@ -203,8 +197,16 @@ module cache #(
 			state <= next_state;
 	end
 	
-	assign data       = state == SHOW ? data_sel : 'z;
-	assign hit        = (state == SHOW | state == SAVE) && data_cnt < WORDS;
-	assign data_strob = state == SHOW;
+	assign data         = state == SHOW ? data_sel : 'z;
+	assign hit          = (state == SHOW | state == SAVE) && data_cnt < WORDS;
+	assign data_strob   = state == SHOW;
+	assign ready        = state == SHOW | state == SAVE;
+	
+	assign D_MEM        = mem;
+	assign D_DATASEL    = data_sel;
+	assign D_DATACNT    = data_cnt;
+	assign D_LASTSAVE   = last_save;
+	assign D_INDEX      = index;
+	assign D_WRITEINDEX = write_index;
 
 endmodule

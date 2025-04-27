@@ -3,25 +3,39 @@
 module tb ();
 
 	logic        clk, rst, clk_en;
-	logic [13:0] pc, memAddr, index, addr;
+	logic [13:0] pc, memInAddr, mem1OutAddr, mem2OutAddr, mem3OutAddr, mem4OutAddr, index, addr;
 	logic [29:0] instr;
-	logic [ 9:0] memOut, memIn, op1, op2, gprOut, aluRes, res, stackOut, 
+	logic [ 9:0] mem1Out, mem2Out, mem3Out, mem4Out, memIn, op1, op2, gpr1Out, gpr2Out, gpr3Out, aluRes, res, stackOut, 
 					 reg1, reg2, reg3, reg4, reg5, reg6, reg7, reg8, reg9, reg10, 
 					 stack1, stack2, stack3, stack4, stack5, stack6, stack7;
-	logic [ 3:0] gprAddr;
+	logic [ 3:0] gpr2Addr, gpr3Addr;
 	logic [ 2:0] state;
-	logic [ 1:0] instrWrite;
-	logic        gf, sf, g, s, op1RE, op2RE, RiHRE, RiLRE, pcEn, memRE, regRE, memWE, regWE, pcSrc, resultSrc, memAddrSrc, push, pop;
+	logic        instrWrite, gf, sf, g, s, op1RE, op2RE, RiRE, pcEn, mem1RE, mem2RE, mem3RE, mem4RE, 
+					 reg1RE, reg2RE, reg3RE, memWE, regWE, pcSrc, resultSrc, push, pop;
 
 	microprocessor microprocessor_dut (
 		.clk          (clk),
 		.rst          (rst),
 		
-		.D_MADDR      (memAddr),
-		.D_MINDATA    (memIn),
-		.D_MWRITE     (memWE),
-		.D_MREAD      (memRE),
-		.D_MOUTDATA   (memOut),
+		.D_WRITE      (memWE),
+		.D_INADDR     (memInAddr),
+		.D_INDATA     (memIn),
+		
+		.D_READ1      (mem1RE),
+		.D_OUTADDR1   (mem1OutAddr),
+		.D_OUTDATA1   (mem1Out),
+		
+		.D_READ2      (mem2RE),
+		.D_OUTADDR2   (mem2OutAddr),
+		.D_OUTDATA2   (mem2Out),
+		
+		.D_READ3      (mem3RE),
+		.D_OUTADDR3   (mem3OutAddr),
+		.D_OUTDATA3   (mem3Out),
+		
+		.D_READ4      (mem4RE),
+		.D_OUTADDR4   (mem4OutAddr),
+		.D_OUTDATA4   (mem4Out),
 		
 		.D_PC         (pc),
 		.D_INSTR      (instr),
@@ -33,16 +47,19 @@ module tb ();
 		.D_S          (s),
 		.D_OP1RE      (op1RE),
 		.D_OP2RE      (op2RE),
-		.D_RIHRE      (RiHRE),
-		.D_RILRE      (RiLRE),
+		.D_RIRE       (RiRE),
 		.D_PCEN       (pcEn),
-		.D_REGRE      (regRE),
+		.D_REG1RE     (reg1RE),
+		.D_REG2RE     (reg2RE),
+		.D_REG3RE     (reg3RE),
 		.D_REGWE      (regWE),
 		.D_PCSRC      (pcSrc),
 		.D_RESULTSRC  (resultSrc),
-		.D_MEMADDRSRC (memAddrSrc),
-		.D_GPROUT     (gprOut),
-		.D_GPRADDR    (gprAddr),
+		.D_GPR1OUT    (gpr1Out),
+		.D_GPR2OUT    (gpr2Out),
+		.D_GPR3OUT    (gpr3Out),
+		.D_GPR2ADDR   (gpr2Addr),
+		.D_GPR3ADDR   (gpr3Addr),
 		.D_ALURES     (aluRes),
 		.D_RES        (res),
 		.D_INSTRWRITE (instrWrite),
@@ -90,7 +107,7 @@ module tb ();
 	initial begin
 		@(negedge rst);
 	
-		repeat (134) @(posedge clk);
+		repeat (96) @(posedge clk);
 		
 		$writememb("D:/SifoCourseWork/ram1.mem", microprocessor_dut.memory_module.ram);
 		

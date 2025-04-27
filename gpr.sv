@@ -1,15 +1,23 @@
 module gpr (
-	input clk,
-	input rst,
-	
-	input [3:0] addr,
-	input [9:0] indata,
-	
-	input        read,
-	input        write,
-	
-	output [9:0] outdata,
+	input        clk,
+	input        rst,
 
+	input        write,	
+	input  [3:0] inaddr,
+	input  [9:0] indata,
+	
+	input        read1,
+	input  [3:0] outaddr1,
+	output [9:0] outdata1,
+	
+	input        read2,
+	input  [3:0] outaddr2,
+	output [9:0] outdata2,
+	
+	input        read3,
+	input  [3:0] outaddr3,
+	output [9:0] outdata3,
+	
 	output [9:0] D_REG1,
 	output [9:0] D_REG2,
 	output [9:0] D_REG3,
@@ -30,9 +38,11 @@ module gpr (
 				registers[i] <= '0;
 		end
 		else if (write)
-			registers[addr] <= indata;
+			registers[inaddr] <= indata;
 	
-	assign outdata = read ? registers[addr] : 'z;
+	assign outdata1 = read1 ? registers[outaddr1] : 'z;
+	assign outdata2 = read2 ? registers[outaddr2] : 'z;
+	assign outdata3 = read3 ? registers[outaddr3] : 'z;
 	
 	assign D_REG1  = registers[0];
 	assign D_REG2  = registers[1];

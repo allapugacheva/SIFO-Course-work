@@ -9,24 +9,26 @@ module cu (
 	output logic resultSrc,
 	
 	output logic memWE,
-	output logic memRE,
+	output logic mem1RE,
+	output logic mem2RE,
+	output logic mem3RE,
+	output logic mem4RE,
 	
 	output logic regWE,
-	output logic regRE,
+	output logic reg1RE,
+	output logic reg2RE,
+	output logic reg3RE,
 	
 	output logic pcEn,
-	
-	output logic memAddrSrc,
 	
 	output logic op1RE,
 	output logic op2RE,
 	
-	output logic RiHRE,
-	output logic RiLRE,
+	output logic RiRE,
 	
 	output logic pcSrc,
 	
-	output logic [1:0] instrWrite,
+	output logic instrWrite,
 	
 	output logic push,
 	output logic pop,
@@ -37,12 +39,10 @@ module cu (
 );
 
 	enum logic [2:0] {
-		FETCH_B1,
-		FETCH_B2_R1,
-		FETCH_B3_RIH,
-		FETCH_RIL,
-		FETCH_M_WAIT,
-		FETCH_M_SAVE,
+		FETCH_COMM,
+		FETCH_REG,
+		MEM_WAIT,
+		MEM_SAVE,
 		EXECUTE
 		
 	} state, next_state;
@@ -59,34 +59,44 @@ module cu (
 		
 		resultSrc  = 1'b0;
 		memWE      = 1'b0;
-		memRE      = 1'b0;
+		mem1RE     = 1'b0;
+		mem2RE     = 1'b0;
+		mem3RE     = 1'b0;
+		mem4RE     = 1'b0;
 		regWE      = 1'b0;
-		regRE      = 1'b0;
+		reg1RE     = 1'b0;
+		reg2RE     = 1'b0;
+		reg3RE     = 1'b0;
 		pcEn       = 1'b0;
-		memAddrSrc = 1'b0;
 		op1RE      = 1'b0;
 		op2RE      = 1'b0;
-		RiHRE      = 1'b0;
-		RiLRE      = 1'b0;
+		RiRE      = 1'b0;
 		pcSrc      = 1'b0;
-		instrWrite = 2'd3;
+		instrWrite = 1'b0;
 		push       = 1'b0;
 		pop        = 1'b0;
 	
 		case (state)
-			FETCH_B1: begin
-				next_state = FETCH_B2_R1;
-				memRE      = 1'b1;
-				instrWrite = 2'd0;
+		
+			FETCH_COMM: begin
+				next_state = FETCH_REG;
+				mem1RE     = 1'b1;
+				mem2RE     = 1'b1;
+				mem3RE     = 1'b1;
+				instrWrite = 1'b1;
 				pcEn       = 1'b1;
-				memAddrSrc = 1'b1;
 			end
-			FETCH_B2_R1: begin
-				pcEn       = 1'b1;
-				memRE      = 1'b1;
-				memAddrSrc = 1'b1;
-				instrWrite = 2'b1;
+			FETCH_REG: begin
 				
+				if (   opcode == 5'b00010
+					 || opcode == 5'b00110
+					 || opcode == 5'b00111
+					 || opcode == 5'b01001
+					 || opcode == 5'b01011 ) begin
+					reg2RE = 1'b1;
+					reg3RE = 1'b1;
+					RiRE   = 1'b1;
+				end
 				if (   opcode == 5'b00001
 					 || opcode == 5'b00010
 					 || opcode == 5'b00011
@@ -96,44 +106,25 @@ module cu (
 					 || opcode == 5'b01100
 					 || opcode == 5'b10001
 					 || opcode == 5'b10010 ) begin
-					regRE   = 1'b1;
-					op1RE   = 1'b1;
+					reg1RE = 1'b1;
+					op1RE  = 1'b1;
 				end
-				
-				next_state = FETCH_B3_RIH;
-			end
-			FETCH_B3_RIH: begin
-				pcEn       = 1'b1;
-				memRE      = 1'b1;
-				memAddrSrc = 1'b1;
-				instrWrite = 2'd2;
-				
-				if (   opcode == 5'b00010
-					 || opcode == 5'b00110
-					 || opcode == 5'b00111
+				if (   opcode == 5'b00111
 					 || opcode == 5'b01001
 					 || opcode == 5'b01011 ) begin
-					regRE      = 1'b1;
-					RiHRE      = 1'b1;
+					reg1RE = 1'b1;
+					op2RE  = 1'b1;
+				end
+				if (   opcode == 5'b01000
+					 || opcode == 5'b01010
+					 || opcode == 5'b01100 ) begin
+					reg2RE = 1'b1;
+					op2RE  = 1'b1;
 				end
 				
-				next_state = FETCH_RIL;
+				next_state = MEM_WAIT;
 			end
-			FETCH_RIL: begin
-			
-				if (   opcode == 5'b00010
-					 || opcode == 5'b00110
-					 || opcode == 5'b00111
-					 || opcode == 5'b01001
-					 || opcode == 5'b01011 ) begin
-					regRE      = 1'b1;
-					RiLRE      = 1'b1;
-				end
-				
-				next_state = FETCH_M_WAIT;
-			end
-			FETCH_M_WAIT: begin
-			
+			MEM_WAIT: begin
 				if (   opcode == 5'b00000
 					 || opcode == 5'b00110
 					 || opcode == 5'b00111
@@ -143,22 +134,11 @@ module cu (
 					 || opcode == 5'b01111
 					 || opcode == 5'b10000
 					 || opcode == 5'b10001 )
-					memRE = 1'b1;
-					
-				if (   opcode == 5'b00111
-					 || opcode == 5'b01001
-					 || opcode == 5'b01011
-					 || opcode == 5'b01000
-					 || opcode == 5'b01010
-					 || opcode == 5'b01100 ) begin
-					regRE     = 1'b1;
-					op2RE     = 1'b1;
-				end
-				
-				next_state = FETCH_M_SAVE;
-			end
-			FETCH_M_SAVE: begin			
+					mem4RE = 1'b1;
 			
+				next_state = MEM_SAVE;
+			end
+			MEM_SAVE: begin
 				if (   opcode == 5'b00000
 					 || opcode == 5'b00110
 					 || opcode == 5'b00111
@@ -170,7 +150,7 @@ module cu (
 					op1RE = 1'b1;
 				else if (opcode == 5'b10001)
 					op2RE = 1'b1;
-					
+				
 				next_state = EXECUTE;
 			end
 			EXECUTE: begin
@@ -218,8 +198,7 @@ module cu (
 					pcSrc     = 1'b1;
 				end
 				
-				next_state = FETCH_B1;
-			
+				next_state = FETCH_COMM;
 			end
 		
 		endcase
@@ -247,7 +226,7 @@ module cu (
 	
 	always_ff @ (posedge clk or posedge rst)
 		if (rst)
-			state <= FETCH_B1;
+			state <= FETCH_COMM;
 		else
 			state <= next_state;
 
