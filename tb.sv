@@ -2,20 +2,26 @@
 
 module tb ();
 
-	logic        clk, rst, clk_en;
+	logic        clk, rst, clk_en, stall;
 	logic [13:0] pc, memInAddr, mem1OutAddr, mem2OutAddr, mem3OutAddr, mem4OutAddr, index, addr;
 	logic [29:0] instr;
-	logic [ 9:0] mem1Out, mem2Out, mem3Out, mem4Out, memIn, op1, op2, gpr1Out, gpr2Out, gpr3Out, aluRes, res, stackOut, 
-					 reg1, reg2, reg3, reg4, reg5, reg6, reg7, reg8, reg9, reg10, 
-					 stack1, stack2, stack3, stack4, stack5, stack6, stack7;
+	logic [ 9:0] mem1Out, mem2Out, mem3Out, mem4Out, memIn, op1, op2, gpr1Out, gpr2Out, gpr3Out, aluRes, res, stackOut;
 	logic [ 3:0] gpr2Addr, gpr3Addr;
 	logic [ 2:0] state;
 	logic        instrWrite, gf, sf, g, s, op1RE, op2RE, RiRE, pcEn, mem1RE, mem2RE, mem3RE, mem4RE, 
 					 reg1RE, reg2RE, reg3RE, memWE, regWE, pcSrc, resultSrc, push, pop;
+	logic        inready, outready1, outready2, outready3, outready4, ram_read, ram_write;
+	logic [13:0] ram_addr;
+	logic [ 9:0] ram_indata, ram_outdata;
+	logic [ 5:0] cache_data_cnt, cache_index, cache_write_index;
+	logic [ 9:0] reg1, reg2, reg3, reg4, reg5, reg6, reg7, reg8, reg9, reg10, 
+					 stack1, stack2, stack3, stack4, stack5, stack6, stack7;
 
 	microprocessor microprocessor_dut (
 		.clk          (clk),
 		.rst          (rst),
+		
+		.D_STALL      (stall),
 		
 		.D_WRITE      (memWE),
 		.D_INADDR     (memInAddr),
@@ -70,6 +76,21 @@ module tb ();
 		.D_SF         (sf),
 		.D_GF         (gf),
 		.D_CLKEN      (clk_en),
+		
+		.D_RAMADDR    (ram_addr),
+		.D_RAMINDATA  (ram_indata),
+		.D_RAMOUTDATA (ram_outdata),
+		.D_RAMREAD    (ram_read),
+		.D_RAMWRITE   (ram_write),
+		.D_INREADY    (inready),
+		.D_OUTREADY1  (outready1),
+		.D_OUTREADY2  (outready2),
+		.D_OUTREADY3  (outready3),
+		.D_OUTREADY4  (outready4),
+		
+		.D_CACHEDATACNT    (cache_data_cnt),
+		.D_CACHEINDEX      (cache_index),
+		.D_CACHEWRITEINDEX (cache_write_index),
 	
 		.D_REG1       (reg1),
 		.D_REG2       (reg2),
@@ -105,9 +126,14 @@ module tb ();
 	end
 	
 	initial begin
-		@(negedge rst);
-	
-		repeat (96) @(posedge clk);
+//		@(negedge rst);
+//	
+//		repeat (5) @(posedge clk);
+
+		@(negedge clk_en);
+
+//		wait(instr[29:25] == 5'b00010);
+//		@(posedge clk);
 		
 		$writememb("D:/SifoCourseWork/ram1.mem", microprocessor_dut.memory_module.ram);
 		

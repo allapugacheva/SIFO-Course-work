@@ -1,6 +1,8 @@
 module microprocessor (
 	input         clk,
 	input         rst,
+	
+	output        D_STALL,
 		
 	output        D_WRITE,
 	output [13:0] D_INADDR,
@@ -56,6 +58,21 @@ module microprocessor (
 	output        D_GF,
 	output        D_CLKEN,
 	
+	output [13:0] D_RAMADDR,
+	output [ 9:0] D_RAMINDATA,
+	output [ 9:0] D_RAMOUTDATA,
+	output        D_RAMREAD,
+	output        D_RAMWRITE,
+	output        D_INREADY,
+	output        D_OUTREADY1,
+	output        D_OUTREADY2,
+	output        D_OUTREADY3,
+	output        D_OUTREADY4,
+	
+	output [ 5:0] D_CACHEDATACNT,
+	output [ 5:0] D_CACHEINDEX,
+	output [ 5:0] D_CACHEWRITEINDEX,
+	
 	output [ 9:0] D_REG1,
 	output [ 9:0] D_REG2,
 	output [ 9:0] D_REG3,
@@ -76,33 +93,51 @@ module microprocessor (
 	output [ 9:0] D_STACK7
 );
 
-	logic [13:0] inaddr, outaddr1, outaddr2, outaddr3, outaddr4;
-	logic [ 9:0] indata, outdata1, outdata2, outdata3, outdata4;
-	logic        memWE, mem1RE, mem2RE, mem3RE, mem4RE;
+	logic [13:0] inaddr, outaddr1, outaddr2, outaddr3, outaddr4, ram_addr;
+	logic [ 9:0] indata, outdata1, outdata2, outdata3, outdata4, ram_indata, ram_outdata;
+	logic        memWE, mem1RE, mem2RE, mem3RE, mem4RE, ram_read, ram_write, inready, outready1, outready2, outready3, outready4, stall;
 	
-	assign D_WRITE    = memWE;
-	assign D_INADDR   = inaddr;
-	assign D_INDATA   = indata;
+	assign D_STALL      = stall;
 	
-	assign D_READ1    = mem1RE;
-	assign D_OUTADDR1 = outaddr1;
-	assign D_OUTDATA1 = outdata1;
+	assign D_WRITE      = memWE;
+	assign D_INADDR     = inaddr;
+	assign D_INDATA     = indata;
 	
-	assign D_READ2    = mem2RE;
-	assign D_OUTADDR2 = outaddr2;
-	assign D_OUTDATA2 = outdata2;
+	assign D_READ1      = mem1RE;
+	assign D_OUTADDR1   = outaddr1;
+	assign D_OUTDATA1   = outdata1;
 	
-	assign D_READ3    = mem3RE;
-	assign D_OUTADDR3 = outaddr3;
-	assign D_OUTDATA3 = outdata3;
+	assign D_READ2      = mem2RE;
+	assign D_OUTADDR2   = outaddr2;
+	assign D_OUTDATA2   = outdata2;
 	
-	assign D_READ4    = mem4RE;
-	assign D_OUTADDR4 = outaddr4;
-	assign D_OUTDATA4 = outdata4;
-
+	assign D_READ3      = mem3RE;
+	assign D_OUTADDR3   = outaddr3;
+	assign D_OUTDATA3   = outdata3;
+	
+	assign D_READ4      = mem4RE;
+	assign D_OUTADDR4   = outaddr4;
+	assign D_OUTDATA4   = outdata4;
+	
+	assign D_RAMADDR    = ram_addr;
+	assign D_RAMINDATA  = ram_indata;
+	assign D_RAMOUTDATA = ram_outdata;
+	assign D_RAMREAD    = ram_read;
+	assign D_RAMWRITE   = ram_write;
+	
+	assign D_INREADY    = inready;
+	assign D_OUTREADY1  = outready1;
+	assign D_OUTREADY2  = outready2;
+	assign D_OUTREADY3  = outready3;
+	assign D_OUTREADY4  = outready4;
+	
+	assign stall = (memWE && ~inready) || (mem1RE && ~outready1) || (mem2RE && ~outready2) || (mem3RE && ~outready3) || (mem4RE && ~outready4);
+	
 	cpu cpu_module (
 		.clk          (clk),
 		.rst          (rst),
+		
+		.stall        (stall),
 		
 		.m_write      (memWE),
 		.m_inaddr     (inaddr),
@@ -178,28 +213,56 @@ module microprocessor (
 		.D_STACK7     (D_STACK7)
 	);
 	
+	cache cache_module (
+		.clk          (clk),
+		.rst          (rst),
+		
+		.write        (memWE),
+		.inaddr       (inaddr),
+		.indata       (indata),
+		.inready      (inready),
+		
+		.read1        (mem1RE),
+		.outaddr1     (outaddr1),
+		.outdata1     (outdata1),
+		.outready1    (outready1),
+		
+		.read2        (mem2RE),
+		.outaddr2     (outaddr2),
+		.outdata2     (outdata2),
+		.outready2    (outready2),
+		
+		.read3        (mem3RE),
+		.outaddr3     (outaddr3),
+		.outdata3     (outdata3),
+		.outready3    (outready3),
+		
+		.read4        (mem4RE),
+		.outaddr4     (outaddr4),
+		.outdata4     (outdata4),
+		.outready4    (outready4),
+		
+		.ram_addr     (ram_addr),
+		.ram_read     (ram_read),
+		.ram_data_out (ram_outdata),
+		.ram_write    (ram_write),
+		.ram_data_in  (ram_indata),
+		
+		.D_DATACNT    (D_CACHEDATACNT),
+		.D_INDEX      (D_CACHEINDEX),
+		.D_WRITEINDEX (D_CACHEWRITEINDEX)
+	);
+	
 	memory memory_module (
 		.clk      (clk),
 		
-		.write    (memWE),
-		.inaddr   (inaddr),
-		.indata   (indata),
+		.addr     (ram_addr),
 		
-		.read1    (mem1RE),
-		.outaddr1 (outaddr1),
-		.outdata1 (outdata1),
+		.write    (ram_write),
+		.indata   (ram_indata),
 		
-		.read2    (mem2RE),
-		.outaddr2 (outaddr2),
-		.outdata2 (outdata2),
-		
-		.read3    (mem3RE),
-		.outaddr3 (outaddr3),
-		.outdata3 (outdata3),
-		
-		.read4    (mem4RE),
-		.outaddr4 (outaddr4),
-		.outdata4 (outdata4)
+		.read     (ram_read),
+		.outdata  (ram_outdata)
 	);
 
 endmodule

@@ -1,6 +1,8 @@
 module cpu (
-	input clk,
-	input rst,
+	input         clk,
+	input         rst,
+	
+	input         stall,
 	
 	output        m_write,
 	output [13:0] m_inaddr,
@@ -89,7 +91,7 @@ module cpu (
 	logic [ 9:0] stack_out;
 	
 	logic clk_en, clk_in;
-	assign clk_in = clk & clk_en;
+	assign clk_in = clk & clk_en & ~stall;
 	
 	always_ff @ (posedge clk_in or posedge rst)
 		if (rst)
@@ -264,6 +266,8 @@ module cpu (
 	cu cu_module (
 		.clk        (clk_in),
 		.rst        (rst),
+		
+		.stall      (stall),
 		
 		.opcode     (instr[29:25]),
 		.s          (s),

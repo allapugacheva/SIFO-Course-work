@@ -2,6 +2,8 @@ module cu (
 	input        clk,
 	input        rst,
 	
+	input        stall,
+	
 	input  [4:0] opcode,
 	input        s,
 	input        g,
@@ -41,8 +43,7 @@ module cu (
 	enum logic [2:0] {
 		FETCH_COMM,
 		FETCH_REG,
-		MEM_WAIT,
-		MEM_SAVE,
+		FETCH_MEM,
 		EXECUTE
 		
 	} state, next_state;
@@ -70,7 +71,7 @@ module cu (
 		pcEn       = 1'b0;
 		op1RE      = 1'b0;
 		op2RE      = 1'b0;
-		RiRE      = 1'b0;
+		RiRE       = 1'b0;
 		pcSrc      = 1'b0;
 		instrWrite = 1'b0;
 		push       = 1'b0;
@@ -79,12 +80,15 @@ module cu (
 		case (state)
 		
 			FETCH_COMM: begin
-				next_state = FETCH_REG;
 				mem1RE     = 1'b1;
 				mem2RE     = 1'b1;
 				mem3RE     = 1'b1;
-				instrWrite = 1'b1;
-				pcEn       = 1'b1;
+				
+				if (~stall) begin 
+					instrWrite = 1'b1;
+					pcEn       = 1'b1;
+					next_state = FETCH_REG; 
+				end
 			end
 			FETCH_REG: begin
 				
@@ -122,9 +126,9 @@ module cu (
 					op2RE  = 1'b1;
 				end
 				
-				next_state = MEM_WAIT;
+				next_state = FETCH_MEM;
 			end
-			MEM_WAIT: begin
+			FETCH_MEM: begin
 				if (   opcode == 5'b00000
 					 || opcode == 5'b00110
 					 || opcode == 5'b00111
@@ -135,10 +139,7 @@ module cu (
 					 || opcode == 5'b10000
 					 || opcode == 5'b10001 )
 					mem4RE = 1'b1;
-			
-				next_state = MEM_SAVE;
-			end
-			MEM_SAVE: begin
+					
 				if (   opcode == 5'b00000
 					 || opcode == 5'b00110
 					 || opcode == 5'b00111
@@ -150,9 +151,13 @@ module cu (
 					op1RE = 1'b1;
 				else if (opcode == 5'b10001)
 					op2RE = 1'b1;
-				
-				next_state = EXECUTE;
+			
+				if (~stall) next_state = EXECUTE;
 			end
+//			MEM_SAVE: begin
+//				
+//				next_state = EXECUTE;
+//			end
 			EXECUTE: begin
 			
 				if ( opcode == 5'b00000 ) begin
@@ -198,7 +203,7 @@ module cu (
 					pcSrc     = 1'b1;
 				end
 				
-				next_state = FETCH_COMM;
+				if (~stall) next_state = FETCH_COMM;
 			end
 		
 		endcase
