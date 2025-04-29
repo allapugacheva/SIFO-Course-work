@@ -18,6 +18,10 @@ module gpr (
 	input  [3:0] outaddr3,
 	output [9:0] outdata3,
 	
+	input        read4,
+	input  [3:0] outaddr4,
+	output [9:0] outdata4,
+	
 	output [9:0] D_REG1,
 	output [9:0] D_REG2,
 	output [9:0] D_REG3,
@@ -43,6 +47,7 @@ module gpr (
 	assign outdata1 = read1 ? registers[outaddr1] : 'z;
 	assign outdata2 = read2 ? registers[outaddr2] : 'z;
 	assign outdata3 = read3 ? registers[outaddr3] : 'z;
+	assign outdata4 = read4 ? registers[outaddr4] : 'z;
 	
 	assign D_REG1  = registers[0];
 	assign D_REG2  = registers[1];

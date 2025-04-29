@@ -2,14 +2,15 @@
 
 module tb ();
 
-	logic        clk, rst, clk_en, stall;
-	logic [13:0] pc, memInAddr, mem1OutAddr, mem2OutAddr, mem3OutAddr, mem4OutAddr, index, addr;
-	logic [29:0] instr;
-	logic [ 9:0] mem1Out, mem2Out, mem3Out, mem4Out, memIn, op1, op2, gpr1Out, gpr2Out, gpr3Out, aluRes, res, stackOut;
-	logic [ 3:0] gpr2Addr, gpr3Addr;
-	logic [ 2:0] state;
+	logic        clk, rst, clk_en, clk_in, stall;
+	logic [13:0] pc, memInAddr, mem1OutAddr, mem2OutAddr, mem3OutAddr, mem4OutAddr, index_s3, index_s4, addr_s3, addr_s4;
+	logic [29:0] instr_s2, instr_s3, instr_s4;
+	logic [ 4:0] opcode_s3, opcode_s4;
+	logic [ 3:0] cu_vld;
+	logic [ 9:0] mem1Out, mem2Out, mem3Out, mem4Out, memIn, op1, op2, gpr1Out, gpr2Out, gpr3Out, gpr4Out, aluRes, res, stackOut;
+	logic [ 3:0] gpr1Addr, gpr2Addr, gpr4Addr;
 	logic        instrWrite, gf, sf, g, s, op1RE, op2RE, RiRE, pcEn, mem1RE, mem2RE, mem3RE, mem4RE, 
-					 reg1RE, reg2RE, reg3RE, memWE, regWE, pcSrc, resultSrc, push, pop;
+					 reg1RE, reg2RE, reg3RE, reg4RE, memWE, regWE, pcSrc, resultSrc, push, pop;
 	logic        inready, outready1, outready2, outready3, outready4, ram_read, ram_write;
 	logic [13:0] ram_addr;
 	logic [ 9:0] ram_indata, ram_outdata;
@@ -44,11 +45,16 @@ module tb ();
 		.D_OUTDATA4   (mem4Out),
 		
 		.D_PC         (pc),
-		.D_INSTR      (instr),
+		.D_CLKIN      (clk_in),
+		.D_INSTRS2    (instr_s2),
+		.D_INSTRS3    (instr_s3),
+		.D_INSTRS4    (instr_s4),
 		.D_OP1        (op1),
 		.D_OP2        (op2),
-		.D_INDEX      (index),
-		.D_ADDR       (addr),
+		.D_INDEXS3    (index_s3),
+		.D_INDEXS4    (index_s4),
+		.D_ADDRS3     (addr_s3),
+		.D_ADDRS4     (addr_s4),
 		.D_G          (g),
 		.D_S          (s),
 		.D_OP1RE      (op1RE),
@@ -58,24 +64,29 @@ module tb ();
 		.D_REG1RE     (reg1RE),
 		.D_REG2RE     (reg2RE),
 		.D_REG3RE     (reg3RE),
+		.D_REG4RE     (reg4RE),
 		.D_REGWE      (regWE),
 		.D_PCSRC      (pcSrc),
 		.D_RESULTSRC  (resultSrc),
 		.D_GPR1OUT    (gpr1Out),
 		.D_GPR2OUT    (gpr2Out),
 		.D_GPR3OUT    (gpr3Out),
+		.D_GPR4OUT    (gpr4Out),
+		.D_GPR1ADDR   (gpr1Addr),
 		.D_GPR2ADDR   (gpr2Addr),
-		.D_GPR3ADDR   (gpr3Addr),
+		.D_GPR4ADDR   (gpr4Addr),
 		.D_ALURES     (aluRes),
 		.D_RES        (res),
 		.D_INSTRWRITE (instrWrite),
 		.D_PUSH       (push),
 		.D_POP        (pop),
 		.D_STACKOUT   (stackOut),
-		.D_STATE      (state),
 		.D_SF         (sf),
 		.D_GF         (gf),
 		.D_CLKEN      (clk_en),
+		.D_OPCODES3   (opcode_s3),
+		.D_OPCODES4   (opcode_s4),
+		.D_VLD        (cu_vld),
 		
 		.D_RAMADDR    (ram_addr),
 		.D_RAMINDATA  (ram_indata),
