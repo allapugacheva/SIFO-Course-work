@@ -3,15 +3,14 @@
 module tb ();
 
 	logic        clk, rst, clk_en;
-	logic [13:0] pc, memInAddr, mem1OutAddr, mem2OutAddr, mem3OutAddr, mem4OutAddr, index, addr;
-	logic [29:0] instr;
-	logic [ 9:0] mem1Out, mem2Out, mem3Out, mem4Out, memIn, op1, op2, gpr1Out, gpr2Out, gpr3Out, aluRes, res, stackOut, 
-					 reg1, reg2, reg3, reg4, reg5, reg6, reg7, reg8, reg9, reg10, 
-					 stack1, stack2, stack3, stack4, stack5, stack6, stack7;
-	logic [ 3:0] gpr2Addr, gpr3Addr;
-	logic [ 2:0] state;
+	logic [13:0] pc, memInAddr, mem1OutAddr, mem2OutAddr, mem3OutAddr, mem4OutAddr, index_s3, index_s4, index_s5, addr_s4, addr_s5;
+	logic [29:0] instr_s2, instr_s3, instr_s4, instr_s5;
+	logic [ 9:0] mem1Out, mem2Out, mem3Out, mem4Out, memIn, op1, op2, gpr1Out, gpr2Out, gpr3Out, gpr4Out, aluRes, res, stackOut;
+	logic [ 3:0] gpr1Addr, gpr2Addr, gpr4Addr;
 	logic        instrWrite, gf, sf, g, s, op1RE, op2RE, RiRE, pcEn, mem1RE, mem2RE, mem3RE, mem4RE, 
-					 reg1RE, reg2RE, reg3RE, memWE, regWE, pcSrc, resultSrc, push, pop;
+					 reg1RE, reg2RE, reg3RE, reg4RE, memWE, regWE, pcSrc, resultSrc, push, pop;
+	logic [ 9:0] reg1, reg2, reg3, reg4, reg5, reg6, reg7, reg8, reg9, reg10, 
+					 stack1, stack2, stack3, stack4, stack5, stack6, stack7;
 
 	microprocessor microprocessor_dut (
 		.clk          (clk),
@@ -38,11 +37,17 @@ module tb ();
 		.D_OUTDATA4   (mem4Out),
 		
 		.D_PC         (pc),
-		.D_INSTR      (instr),
+		.D_INSTRS2      (instr_s2),
+		.D_INSTRS3      (instr_s3),
+		.D_INSTRS4      (instr_s4),
+		.D_INSTRS5      (instr_s5),
 		.D_OP1        (op1),
 		.D_OP2        (op2),
-		.D_INDEX      (index),
-		.D_ADDR       (addr),
+		.D_INDEXS3      (index_s3),
+		.D_INDEXS4      (index_s4),
+		.D_INDEXS5      (index_s5),
+		.D_ADDRS4       (addr_s4),
+		.D_ADDRS5       (addr_s5),
 		.D_G          (g),
 		.D_S          (s),
 		.D_OP1RE      (op1RE),
@@ -52,21 +57,23 @@ module tb ();
 		.D_REG1RE     (reg1RE),
 		.D_REG2RE     (reg2RE),
 		.D_REG3RE     (reg3RE),
+		.D_REG4RE     (reg4RE),
 		.D_REGWE      (regWE),
 		.D_PCSRC      (pcSrc),
 		.D_RESULTSRC  (resultSrc),
 		.D_GPR1OUT    (gpr1Out),
 		.D_GPR2OUT    (gpr2Out),
 		.D_GPR3OUT    (gpr3Out),
+		.D_GPR4OUT    (gpr4Out),
+		.D_GPR1ADDR   (gpr1Addr),
 		.D_GPR2ADDR   (gpr2Addr),
-		.D_GPR3ADDR   (gpr3Addr),
+		.D_GPR4ADDR   (gpr4Addr),
 		.D_ALURES     (aluRes),
 		.D_RES        (res),
 		.D_INSTRWRITE (instrWrite),
 		.D_PUSH       (push),
 		.D_POP        (pop),
 		.D_STACKOUT   (stackOut),
-		.D_STATE      (state),
 		.D_SF         (sf),
 		.D_GF         (gf),
 		.D_CLKEN      (clk_en),
@@ -107,7 +114,7 @@ module tb ();
 	initial begin
 		@(negedge rst);
 	
-		repeat (96) @(posedge clk);
+		@(negedge clk_en);
 		
 		$writememb("D:/SifoCourseWork/ram1.mem", microprocessor_dut.memory_module.ram);
 		
