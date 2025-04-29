@@ -8,43 +8,45 @@ module cache #(
 				 WORDS_LEN  = $clog2(WORDS),
 				 LINES_LEN  = $clog2(LINES)
 ) (
-	input                                       clk,
-	input                                       rst,
+	input                           clk,
+	input                           rst,
 	
-	input                                       write,
-	input        [ADDR_WIDTH - 1:0]             inaddr,
-	input        [DATA_WIDTH - 1:0]             indata,
-	output                                      inready,
+	input                           grant,
 	
-	input                                       read1,
-	input        [ADDR_WIDTH - 1:0]             outaddr1,
-	output       [DATA_WIDTH - 1:0]             outdata1,
-	output                                      outready1,
+	input                           write,
+	input        [ADDR_WIDTH - 1:0] inaddr,
+	input        [DATA_WIDTH - 1:0] indata,
+	output                          inready,
 	
-	input                                       read2,
-	input        [ADDR_WIDTH - 1:0]             outaddr2,
-	output       [DATA_WIDTH - 1:0]             outdata2,
-	output                                      outready2,
+	input                           read1,
+	input        [ADDR_WIDTH - 1:0] outaddr1,
+	output       [DATA_WIDTH - 1:0] outdata1,
+	output                          outready1,
 	
-	input                                       read3,
-	input        [ADDR_WIDTH - 1:0]             outaddr3,
-	output       [DATA_WIDTH - 1:0]             outdata3,
-	output                                      outready3,
+	input                           read2,
+	input        [ADDR_WIDTH - 1:0] outaddr2,
+	output       [DATA_WIDTH - 1:0] outdata2,
+	output                          outready2,
 	
-	input                                       read4,
-	input        [ADDR_WIDTH - 1:0]             outaddr4,
-	output       [DATA_WIDTH - 1:0]             outdata4,
-	output                                      outready4,
+	input                           read3,
+	input        [ADDR_WIDTH - 1:0] outaddr3,
+	output       [DATA_WIDTH - 1:0] outdata3,
+	output                          outready3,
 	
-	output logic [ADDR_WIDTH - 1:0]             ram_addr,
-	output logic                                ram_read,
-	input  logic [DATA_WIDTH - 1:0]             ram_data_out,
-	output logic                                ram_write,
-	output logic [DATA_WIDTH - 1:0]             ram_data_in,
+	input                           read4,
+	input        [ADDR_WIDTH - 1:0] outaddr4,
+	output       [DATA_WIDTH - 1:0] outdata4,
+	output                          outready4,
 	
-	output [WORDS_LEN:0]                        D_DATACNT,
-	output [LINES_LEN - 1:0]                    D_INDEX,
-	output [LINES_LEN - 1:0]                    D_WRITEINDEX
+	output logic [ADDR_WIDTH - 1:0] ram_addr,
+	output logic                    ram_read,
+	input  logic [DATA_WIDTH - 1:0] ram_data_out,
+	output logic                    ram_write,
+	output logic [DATA_WIDTH - 1:0] ram_data_in,
+	
+	output       [     WORDS_LEN:0] D_DATACNT,
+	output       [ LINES_LEN - 1:0] D_INDEX,
+	output       [ LINES_LEN - 1:0] D_WRITEINDEX
 );
 
 	typedef enum {
@@ -182,7 +184,7 @@ module cache #(
 			else
 				data_cnt <= '0;
 		end
-		else if (state == READ) begin
+		else if (grant && state == READ) begin
 			if (data_cnt < WORDS)
 				data_cnt <= data_cnt + 1'b1;
 			else
@@ -196,7 +198,7 @@ module cache #(
 				mem[i] <= '0;
 		end
 		else begin
-			if (state == READ) begin
+			if (grant && state == READ) begin
 				if (data_cnt > 1'b0 && data_cnt < WORDS)
 					mem[index][DATA_WIDTH * data_cnt - 1 -: DATA_WIDTH]         <= ram_data_out;
 				else if (data_cnt == WORDS) begin

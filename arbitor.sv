@@ -1,11 +1,12 @@
 module arbitor (
 	input        clk,
 	input        rst,
+	
 	input        request1,
 	input        request2,
-	input        busbusy,
-	output       grant1,
-	output       grant2,
+	
+	output logic grant1,
+	output logic grant2,
 	
 	output [1:0] D_PRIORITY
 );
@@ -14,9 +15,11 @@ module arbitor (
 	
 	always_ff @(posedge clk or posedge rst) begin
 		if (rst)
+			masters_priority <= 2'b01;
+		else if (grant1 && ~request1)
+			masters_priority <= 2'b01;
+		else if (grant2 && ~request2)
 			masters_priority <= 2'b10;
-		else if (busbusy)
-			masters_priority <= ~masters_priority;
 	end
 	
 	always_ff @(posedge clk or posedge rst) begin
@@ -25,7 +28,7 @@ module arbitor (
 		end
 		else if (~request1)
 			grant1 <= 1'b0;
-		else if (request1 & ~busbusy)
+		else if (request1 & ~grant2)
 			grant1 <= masters_priority[1] || ~request2;
 	end
 	
@@ -35,7 +38,7 @@ module arbitor (
 		end
 		else if (~request2)
 			grant2 <= 1'b0;
-		else if (request2 & ~busbusy)
+		else if (request2 & ~grant1)
 			grant2 <= masters_priority[0] || ~request1;
 	end
 	

@@ -3,14 +3,16 @@
 module tb ();
 
 	logic        clk, rst, clk_en, stall;
-	logic [13:0] pc, memInAddr, mem1OutAddr, mem2OutAddr, mem3OutAddr, mem4OutAddr, index, addr;
+	logic [13:0] pc, memInAddr, mem1OutAddr, mem2OutAddr, mem3OutAddr, mem4OutAddr, index, addr, dma_addr, cache_ram_addr;
 	logic [29:0] instr;
 	logic [ 9:0] mem1Out, mem2Out, mem3Out, mem4Out, memIn, op1, op2, gpr1Out, gpr2Out, gpr3Out, aluRes, res, stackOut;
 	logic [ 3:0] gpr2Addr, gpr3Addr;
 	logic [ 2:0] state;
 	logic        instrWrite, gf, sf, g, s, op1RE, op2RE, RiRE, pcEn, mem1RE, mem2RE, mem3RE, mem4RE, 
 					 reg1RE, reg2RE, reg3RE, memWE, regWE, pcSrc, resultSrc, push, pop;
-	logic        inready, outready1, outready2, outready3, outready4, ram_read, ram_write;
+	logic        inready, outready1, outready2, outready3, outready4, ram_read, ram_write, req1, grant1, grant2;
+	logic [ 1:0] arb_priority, dma_state;
+	logic [ 9:0] dma_data;
 	logic [13:0] ram_addr;
 	logic [ 9:0] ram_indata, ram_outdata;
 	logic [ 5:0] cache_data_cnt, cache_index, cache_write_index;
@@ -78,6 +80,8 @@ module tb ();
 		.D_CLKEN      (clk_en),
 		
 		.D_RAMADDR    (ram_addr),
+		.D_CACHERAMADDR (cache_ram_addr),
+		.D_DMAADDR    (dma_addr),
 		.D_RAMINDATA  (ram_indata),
 		.D_RAMOUTDATA (ram_outdata),
 		.D_RAMREAD    (ram_read),
@@ -91,6 +95,13 @@ module tb ();
 		.D_CACHEDATACNT    (cache_data_cnt),
 		.D_CACHEINDEX      (cache_index),
 		.D_CACHEWRITEINDEX (cache_write_index),
+		
+		.D_DMASTATE   (dma_state),
+		.D_PRIORITY   (arb_priority),
+		.D_REQ1       (req1),
+		.D_GRANT1     (grant1),
+		.D_GRANT2     (grant2),
+		.D_DMADATA    (dma_data),
 	
 		.D_REG1       (reg1),
 		.D_REG2       (reg2),
