@@ -154,10 +154,6 @@ module cu (
 			
 				if (~stall) next_state = EXECUTE;
 			end
-//			MEM_SAVE: begin
-//				
-//				next_state = EXECUTE;
-//			end
 			EXECUTE: begin
 			
 				if ( opcode == 5'b00000 ) begin

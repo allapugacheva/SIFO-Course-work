@@ -4,8 +4,8 @@ module alu (
 	input  signed [9:0] op2,
 	
 	output logic signed  [9:0] res,
-	output        logic       s,  // lower 0
-	output        logic       g   // op1 > op2
+	output logic        s,  // lower 0
+	output logic        g   // op1 > op2
 );
 	
 	logic [3:0] op2_mod;

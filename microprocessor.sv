@@ -72,8 +72,8 @@ module microprocessor (
 	output        D_OUTREADY4,
 	
 	output [ 5:0] D_CACHEDATACNT,
-	output [ 5:0] D_CACHEINDEX,
-	output [ 5:0] D_CACHEWRITEINDEX,
+	output [ 6:0] D_CACHEINDEX,
+	output [ 6:0] D_CACHEWRITEINDEX,
 	
 	output [ 1:0] D_DMASTATE,
 	output [ 1:0] D_PRIORITY,

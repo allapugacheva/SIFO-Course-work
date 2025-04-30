@@ -1,5 +1,5 @@
 module cache #(
-	parameter LINES      = 64,
+	parameter LINES      = 128,
 				 WORDS      = 32,
 				 DATA_WIDTH = 10,
 				 ADDR_WIDTH = 14,

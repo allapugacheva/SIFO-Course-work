@@ -15,7 +15,8 @@ module tb ();
 	logic [ 9:0] dma_data;
 	logic [13:0] ram_addr;
 	logic [ 9:0] ram_indata, ram_outdata;
-	logic [ 5:0] cache_data_cnt, cache_index, cache_write_index;
+	logic [ 5:0] cache_data_cnt;
+	logic [ 6:0] cache_index, cache_write_index;
 	logic [ 9:0] reg1, reg2, reg3, reg4, reg5, reg6, reg7, reg8, reg9, reg10, 
 					 stack1, stack2, stack3, stack4, stack5, stack6, stack7;
 

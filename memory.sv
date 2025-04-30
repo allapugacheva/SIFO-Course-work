@@ -1,12 +1,12 @@
 module memory (
-	input clk,
+	input               clk,
 	
-	input  [13:0] addr,
+	input  [13:0]       addr,
 	
-	input 		  write,
-	input  [ 9:0] indata,
+	input 		        write,
+	input  [ 9:0]       indata,
 	
-	input         read,
+	input               read,
 	output logic [ 9:0] outdata
 );
 
