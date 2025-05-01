@@ -53,7 +53,7 @@ set_global_assignment -name EDA_SIMULATION_TOOL "Questa Intel FPGA (Verilog)"
 set_global_assignment -name EDA_TIME_SCALE "1 ps" -section_id eda_simulation
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "VERILOG HDL" -section_id eda_simulation
 set_global_assignment -name EDA_TEST_BENCH_ENABLE_STATUS TEST_BENCH_MODE -section_id eda_simulation
-set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH arbitor_tb -section_id eda_simulation
+set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH tb -section_id eda_simulation
 set_global_assignment -name EDA_TEST_BENCH_NAME tb -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id tb
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME tb -section_id tb
@@ -92,6 +92,9 @@ set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME cache_tb -section_id cach
 set_global_assignment -name EDA_TEST_BENCH_NAME dma_tb -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id dma_tb
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME dma_tb -section_id dma_tb
+set_global_assignment -name EDA_TEST_BENCH_NAME arbitor_tb -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id arbitor_tb
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME arbitor_tb -section_id arbitor_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE tb.sv -section_id tb
 set_global_assignment -name EDA_TEST_BENCH_FILE memory_tb.sv -section_id memory_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE cu_tb.sv -section_id cu_tb
@@ -100,7 +103,4 @@ set_global_assignment -name EDA_TEST_BENCH_FILE stack_tb.sv -section_id stack_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE gpr_tb.sv -section_id gpr_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE cache_tb.sv -section_id cache_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE dma_tb.sv -section_id dma_tb
-set_global_assignment -name EDA_TEST_BENCH_NAME arbitor_tb -section_id eda_simulation
-set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id arbitor_tb
-set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME arbitor_tb -section_id arbitor_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE arbitor_tb.sv -section_id arbitor_tb

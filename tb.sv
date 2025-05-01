@@ -138,16 +138,11 @@ module tb ();
 	end
 	
 	initial begin
-//		@(negedge rst);
-//	
-//		repeat (5) @(posedge clk);
 
 		@(negedge clk_en);
-
-//		wait(instr[29:25] == 5'b00010);
-//		@(posedge clk);
 		
 		$writememb("D:/SifoCourseWork/ram1.mem", microprocessor_dut.memory_module.ram);
+		$writememb("D:/SifoCourseWork/cache.mem", microprocessor_dut.cache_module.mem);
 		
 		$finish;
 	end

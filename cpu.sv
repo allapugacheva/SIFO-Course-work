@@ -119,7 +119,8 @@ module cpu (
 					|| instr[29:25] == 5'b00110
 					|| instr[29:25] == 5'b00111
 					|| instr[29:25] == 5'b01001
-					|| instr[29:25] == 5'b01011 )
+					|| instr[29:25] == 5'b01011
+				   || instr[29:25] == 5'b10100 )
 			addr = instr[13:0] + index;
 	end
 	

@@ -96,7 +96,8 @@ module cu (
 					 || opcode == 5'b00110
 					 || opcode == 5'b00111
 					 || opcode == 5'b01001
-					 || opcode == 5'b01011 ) begin
+					 || opcode == 5'b01011
+					 || opcode == 5'b10100) begin
 					reg2RE = 1'b1;
 					reg3RE = 1'b1;
 					RiRE   = 1'b1;
@@ -121,7 +122,8 @@ module cu (
 				end
 				if (   opcode == 5'b01000
 					 || opcode == 5'b01010
-					 || opcode == 5'b01100 ) begin
+					 || opcode == 5'b01100
+					 || opcode == 5'b10001 ) begin
 					reg2RE = 1'b1;
 					op2RE  = 1'b1;
 				end
@@ -137,26 +139,17 @@ module cu (
 					 || opcode == 5'b01110
 					 || opcode == 5'b01111
 					 || opcode == 5'b10000
-					 || opcode == 5'b10001 )
+					 || opcode == 5'b10100 ) begin
 					mem4RE = 1'b1;
-					
-				if (   opcode == 5'b00000
-					 || opcode == 5'b00110
-					 || opcode == 5'b00111
-					 || opcode == 5'b01001
-					 || opcode == 5'b01011
-					 || opcode == 5'b01110
-					 || opcode == 5'b01111
-					 || opcode == 5'b10000 )
-					op1RE = 1'b1;
-				else if (opcode == 5'b10001)
-					op2RE = 1'b1;
+					op1RE  = 1'b1;
+				end
 			
 				if (~stall) next_state = EXECUTE;
 			end
 			EXECUTE: begin
 			
-				if ( opcode == 5'b00000 ) begin
+				if (   opcode == 5'b00000
+			       || opcode == 5'b10100 ) begin
 					resultSrc = 1'b1;
 					regWE     = 1'b1;
 				end
